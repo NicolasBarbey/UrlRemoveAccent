@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<config xmlns="http://thelia.net/schema/dic/config"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://thelia.net/schema/dic/config http://thelia.net/schema/dic/config/thelia-1.0.xsd">
+
+    <services>
+        <service id="urlremoveaccent.rewriteurl" class="UrlRemoveAccent\EventListener\RewriteUrlListener" scope="request">
+            <tag name="kernel.event_subscriber" />
+        </service>
+    </services>
+
+    <hooks>
+        <hook id="urlremoveaccent.module.config.hook" scope="request">
+            <tag name="hook.event_listener" event="module.configuration" type="back" templates="render:UrlRemoveAccent/module-configuration.html" />
+        </hook>
+    </hooks>
+
+</config>

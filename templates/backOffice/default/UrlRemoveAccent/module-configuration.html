@@ -1,0 +1,12 @@
+<div class="general-block-decorator">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-warning">
+                {intl l="Once this module is activated, every new rewritten url generated (eg. on a product or category creation) will be automatically parsed and the accents / special chars will be removed." d="urlremoveaccent.bo.default"}
+                {intl l="If you want to remove accents in the existing rewritten urls in your database, click on the button below." d="urlremoveaccent.bo.default"}
+                {intl l="Be careful ! This cannot be undone." d="urlremoveaccent.bo.default"}
+            </div>
+            <a class="btn btn-danger" href="{url path='/admin/module/urlremoveaccent/sanitizeall'}">{intl l="Remove all accents and special chars in existing URLs" d="urlremoveaccent.bo.default"}</a>
+        </div>
+    </div>
+</div>
