@@ -19,9 +19,9 @@ class RewriteUrlListener implements EventSubscriberInterface
         }
 
         $cleanTitle = UrlRemoveAccent::removeSpecialCharsString($title);
-        $url = $cleanTitle . ".html";
+        $url = $cleanTitle;
 
-        $url = UrlRemoveAccent::getUniqueUrl($url);
+        $url = UrlRemoveAccent::unifyUrl($url, $event->getObject()->getId());
 
         if (!empty($url)) {
             $rewritingUrl = new RewritingUrl();

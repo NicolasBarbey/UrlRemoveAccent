@@ -31,16 +31,51 @@ class UrlRemoveAccent extends BaseModule
         /** @var RewritingUrl $rewrittenUrl */
         foreach ($allRewrittenUrl as $rewrittenUrl) {
             $baseUrl = $rewrittenUrl->getUrl();
+
             $cleanUrl = self::removeSpecialCharsUrl($baseUrl);
-            if ($baseUrl !== $cleanUrl) {
-                $uniqueUrl = self::getUniqueUrl($cleanUrl);
-                if (!empty($uniqueUrl)) {
-                    $rewrittenUrl->setUrl($uniqueUrl)->save();
-                }
+
+            if ("" == $cleanUrl) {
+                continue;
             }
+
+            // If url doesn't change do nothing
+            if ($baseUrl === $cleanUrl) {
+                continue;
+            }
+
+            // If clean url already exist for the same view get it
+            $cleanRewritingUrl = RewritingUrlQuery::create()
+                ->filterByView($rewrittenUrl->getView())
+                ->filterByViewId($rewrittenUrl->getViewId())
+                ->filterByViewLocale($rewrittenUrl->getViewLocale())
+                ->filterByUrl($cleanUrl)
+                ->findOne();
+
+            // Else create new url without accent
+            if (!$cleanRewritingUrl) {
+                $cleanRewritingUrl = new RewritingUrl();
+
+                $uniqueUrl = self::unifyUrl($cleanUrl, $rewrittenUrl->getViewId());
+
+                $cleanRewritingUrl->setUrl($uniqueUrl)
+                    ->setView($rewrittenUrl->getView())
+                    ->setViewId($rewrittenUrl->getViewId())
+                    ->setViewLocale($rewrittenUrl->getViewLocale())
+                    ->save();
+            }
+
+            // Keep "Accent" redirect before transfer
+            $oldRedirect = $rewrittenUrl->getRedirected();
+
+            // Redirect "Accent" to "WithoutAccent"
+            $rewrittenUrl->setRedirected($cleanRewritingUrl->getId())
+                ->save();
+
+            // Transfer "Accent" Redirect to "WithoutAccent"
+            $cleanRewritingUrl->setRedirected($oldRedirect)
+                ->save();
         }
     }
-
 
     public static function removeSpecialCharsUrl($url)
     {
@@ -58,47 +93,25 @@ class UrlRemoveAccent extends BaseModule
         return $urlWithoutExtension . $extension;
     }
 
-    public static function getUniqueUrl($url)
-    {
-        $extension = pathinfo($url, PATHINFO_EXTENSION);
-        if (empty($extension)) {
-            $extension = "";
-        } else {
-            $extension = ".".$extension;
-        }
-
-        $urlWithoutExtension = substr($url, 0, -strlen($extension));
-
-        $finalUrl = $urlWithoutExtension . $extension;
-
-        try {
-            $i=0;
-            while (URL::getInstance()->resolve($finalUrl)) {
-                $i++;
-                $finalUrl = sprintf("%s-%d".$extension, $urlWithoutExtension, $i);
-            }
-        } catch (UrlRewritingException $e) {
-            return $finalUrl;
-        }
-        return null;
-    }
-
-
     public static function removeSpecialCharsString($string)
     {
-        // Replace all weird characters with dashes
-        $cleanString = preg_replace('/[^\w\-~_\.]+/u', '-', $string);
-
-        $cleanString = mb_strtolower($cleanString, 'UTF-8');
-        $cleanString = self::convertAccents($cleanString);
-        $cleanString = preg_replace("/[^a-z0-9 ]/", '-', $cleanString);
-
-        // Only allow one dash separator at a time (and make string lowercase)
-        $cleanString = preg_replace('/--+/u', '-', $cleanString);
-
-        $cleanString = rtrim($cleanString, '-');
+        $cleanString = self::convertAccents($string);
 
         return $cleanString;
+    }
+
+    public static function unifyUrl($url, $viewId)
+    {
+        $urlExist = RewritingUrlQuery::create()
+            ->findOneByUrl($url);
+
+        if (null === $urlExist) {
+            return $url;
+        }
+
+        $urlWithPrefix = $viewId."-".$url;
+
+        return self::unifyUrl($urlWithPrefix, $viewId);
     }
 
     private static function convertAccents($string)
