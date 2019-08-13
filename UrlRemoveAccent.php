@@ -1,22 +1,11 @@
 <?php
-/*************************************************************************************/
-/*      This file is part of the Thelia package.                                     */
-/*                                                                                   */
-/*      Copyright (c) OpenStudio                                                     */
-/*      email : dev@thelia.net                                                       */
-/*      web : http://www.thelia.net                                                  */
-/*                                                                                   */
-/*      For the full copyright and license information, please view the LICENSE.txt  */
-/*      file that was distributed with this source code.                             */
-/*************************************************************************************/
 
 namespace UrlRemoveAccent;
 
-use Thelia\Exception\UrlRewritingException;
+use Propel\Runtime\ActiveQuery\Criteria;
 use Thelia\Model\RewritingUrl;
 use Thelia\Model\RewritingUrlQuery;
 use Thelia\Module\BaseModule;
-use Thelia\Tools\URL;
 
 class UrlRemoveAccent extends BaseModule
 {
@@ -24,15 +13,17 @@ class UrlRemoveAccent extends BaseModule
     const DOMAIN_NAME = 'urlremoveaccent';
 
 
-    public static function removeSpecialCharsInAllExistingUrls()
+    public static function removeAccentInAllExistingUrls()
     {
-        $allRewrittenUrl = RewritingUrlQuery::create()->find();
+        $allDefaultRewrittenUrl = RewritingUrlQuery::create()
+            ->filterByRedirected(null, Criteria::ISNULL)
+            ->find();
 
         /** @var RewritingUrl $rewrittenUrl */
-        foreach ($allRewrittenUrl as $rewrittenUrl) {
+        foreach ($allDefaultRewrittenUrl as $rewrittenUrl) {
             $baseUrl = $rewrittenUrl->getUrl();
 
-            $cleanUrl = self::removeSpecialCharsUrl($baseUrl);
+            $cleanUrl = self::removeAccentsUrl($baseUrl);
 
             if ("" == $cleanUrl) {
                 continue;
@@ -77,25 +68,9 @@ class UrlRemoveAccent extends BaseModule
         }
     }
 
-    public static function removeSpecialCharsUrl($url)
+    public static function removeAccentsUrl($url)
     {
-        $extension = pathinfo($url, PATHINFO_EXTENSION);
-        if (empty($extension)) {
-            $extension = "";
-        } else {
-            $extension = ".".$extension;
-        }
-
-        $urlWithoutExtension = substr($url, 0, -strlen($extension));
-
-        $urlWithoutExtension = self::removeSpecialCharsString($urlWithoutExtension);
-
-        return $urlWithoutExtension . $extension;
-    }
-
-    public static function removeSpecialCharsString($string)
-    {
-        $cleanString = self::convertAccents($string);
+        $cleanString = self::convertAccents($url);
 
         return $cleanString;
     }
