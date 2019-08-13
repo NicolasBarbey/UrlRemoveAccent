@@ -18,7 +18,7 @@ class RewriteUrlListener implements EventSubscriberInterface
             throw new \RuntimeException('Impossible to create an url if title is null');
         }
 
-        $cleanTitle = UrlRemoveAccent::removeSpecialCharsString($title);
+        $cleanTitle = UrlRemoveAccent::removeAccentsUrl($title);
         $url = $cleanTitle;
 
         $url = UrlRemoveAccent::unifyUrl($url, $event->getObject()->getId());

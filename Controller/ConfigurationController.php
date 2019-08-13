@@ -16,7 +16,7 @@ class ConfigurationController extends BaseAdminController
             return $response;
         }
 
-        UrlRemoveAccent::removeSpecialCharsInAllExistingUrls();
+        UrlRemoveAccent::removeAccentInAllExistingUrls();
 
         return $this->generateRedirect(URL::getInstance()->absoluteUrl('/admin/module/UrlRemoveAccent', []));
     }
