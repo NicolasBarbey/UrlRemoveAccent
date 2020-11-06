@@ -1,5 +1,8 @@
 # UrlRemoveAccent
 
+[DEPRECATED] If you have Thelia >= 2.4.0 it's recommended to use :
+https://github.com/thelia-modules/UrlSanitizer
+
 This module allows you to strip all accents in your urls.
 
 ## Installation
